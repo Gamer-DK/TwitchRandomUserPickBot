@@ -1,0 +1,10 @@
+{
+    "JoinMessage":"join",
+    "NoOneJoiningMessage": "No one joined nyoo",
+    "WinMessageFromBot": "!winner was the chosen one YAY",
+    "JoinMessageToLower": false,
+    "SubbedUsersCanJoin": true,
+    "NonSubbedUsersCanJoin": true,
+    "Timer": 60,
+    "EarlyEndMessage": "end" 
+}
