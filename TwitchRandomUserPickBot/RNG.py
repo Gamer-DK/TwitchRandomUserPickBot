@@ -2,7 +2,7 @@ import random
 from ClearTerminal import clear_console
 from rich import print
 
-class Gambling():
+class RandomPlayerPicker():
     def __init__(self, join_message):
         self.join_message = join_message
         self.joined_users = []

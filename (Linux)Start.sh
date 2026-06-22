@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ==========================================
-# Twitch Gambling Bot Starter Script For Linux
+# Twitch Random User Pick Bot Starter Script For Linux
 # ------------------------------------------
 # This script:
 # 1. Makes a virtual environment
@@ -24,6 +24,6 @@ source venv/bin/activate
 
 python3 -m pip install -r requirements.txt
 
-python3 TwitchGamblingBot/TwitchGamblingBot.py
+python3 TwitchRandomUserPickBot/TwitchRandomUserPickBot.py
 
 read -p "Press Enter to close..."

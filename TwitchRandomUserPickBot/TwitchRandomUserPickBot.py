@@ -5,7 +5,7 @@ from warnings import warn
 from rich import print
 from twitchio.ext import commands
 from twitchio import *
-from Gambling import Gambling
+from RNG import RandomPlayerPicker
 from ClearTerminal import clear_console
 from TwitchInformationCheck import twitch_mod_oauth_token
 
@@ -14,10 +14,8 @@ BASE_DIR = os.path.dirname(__file__)
 with open(os.path.join(BASE_DIR, "TwitchInformation.json"), "r") as json_file:
     TWITCH_DATA = json.load(json_file)
 
-with open(os.path.join(BASE_DIR,"GamblingSettings.json"), "r") as json_file:
-    GAMBLING_DATA = json.load(json_file)
-
-TOTAL_GAMBLING_USERS = 0
+with open(os.path.join(BASE_DIR, "Settings.json"), "r") as json_file:
+    DATA = json.load(json_file)
 
 is_shutting_down = False
 
@@ -36,9 +34,9 @@ class AllMessagesBot(commands.Bot):
         self.is_shutting_down = False
         self.channel = None
         super().__init__(token=TWITCH_MOD_OAUTH_TOKEN, prefix='?', initial_channels=[CHANNEL_NAME])
-        self.gambling = Gambling(GAMBLING_DATA["JoinMessage"])
+        self.random_player_picker = RandomPlayerPicker(DATA["JoinMessage"])
 
-        print('[yellow]This VIP Gambling Twitch bot is based on the Teaching Streamers to Code project from DougDoug.\nMy GitHub: Gamer-DK')
+        print('[yellow]This Twitch bot is based on the Teaching Streamers to Code project from DougDoug.\nMy GitHub: Gamer-DK')
 
     async def event_ready(self):
         self.channel = self.get_channel(CHANNEL_NAME)
@@ -48,6 +46,7 @@ class AllMessagesBot(commands.Bot):
             await self.end_application()
         else:
             print(f'[green]Logged into Twitch as {self.nick}')
+        await self.channel.send("Bot started. Join by sending: " + DATA['JoinMessage'])
 
         if self.auto_end_task is None or self.auto_end_task.done():
             self.auto_end_task = asyncio.create_task(self.auto_end())
@@ -76,32 +75,32 @@ class AllMessagesBot(commands.Bot):
         await self.process_message(message)
 
     def can_join(self, user_message):
-        if not GAMBLING_DATA["SubbedUsersCanJoin"] and GAMBLING_DATA["NonSubbedUsersCanJoin"]:
-            if GAMBLING_DATA["SubbedUsersCanJoin"]:
+        if not DATA["SubbedUsersCanJoin"] and DATA["NonSubbedUsersCanJoin"]:
+            if DATA["SubbedUsersCanJoin"]:
                 return self.is_user_subscribed(user_message)
-            elif GAMBLING_DATA["NonSubbedUsersCanJoin"]:
+            elif DATA["NonSubbedUsersCanJoin"]:
                 return not self.is_user_subscribed(user_message)
             else:
-                print("[red]no one can join. check the GamblinSettings.json[/red]")
+                print("[red]no one can join. check the Settings.json[/red]")
                 return False
         return True
     async def process_message(self, message: Message):
         username = message.author.name
         user_message = message.content
 
-        if GAMBLING_DATA["JoinMessageToLower"]:
+        if DATA["JoinMessageToLower"]:
             user_message = user_message.lower()
 
-        if username.lower() == CHANNEL_NAME.lower() and GAMBLING_DATA["EarlyEndMessage"] in user_message:
+        if username.lower() == CHANNEL_NAME.lower() and DATA["EarlyEndMessage"] in user_message:
             await self.end_application()
             return
 
         if self.can_join(message):
-            self.gambling.join(user_message, username)
+            self.random_player_picker.join(user_message, username)
 
     async def end_bot(self):
-        results = self.gambling.chose_winner()
-        self.gambling.announce_winner(results)
+        results = self.random_player_picker.chose_winner()
+        self.random_player_picker.announce_winner(results)
         await self.handle_winner(results)
 
     async def handle_winner(self, results):
@@ -109,12 +108,12 @@ class AllMessagesBot(commands.Bot):
             if not self.channel:
                 self.channel = self.get_channel(CHANNEL_NAME)
             if self.channel:
-                await self.channel.send(GAMBLING_DATA["NoOneJoiningMessage"]) #Sadge
+                await self.channel.send(DATA["NoOneJoiningMessage"]) #Sadge
             else:
                 print("[red]Couldn't get the channel to send a message to[/red]")
             return
         else:
-            await self.channel.send(update_win_message(results, GAMBLING_DATA["WinMessageFromBot"]))
+            await self.channel.send(update_win_message(results, DATA["WinMessageFromBot"]))
 
     async def end_application(self):
 
@@ -144,7 +143,7 @@ class AllMessagesBot(commands.Bot):
             self.loop.call_soon(self.loop.stop)
 
     async def auto_end(self):
-        await asyncio.sleep(GAMBLING_DATA["Timer"])
+        await asyncio.sleep(DATA["Timer"])
         await self.end_application()
 
 
